@@ -14,7 +14,7 @@ class opts(object):
                              help='ctdet | ddd | multi_pose | exdet')
     self.parser.add_argument('--dataset', default='coco',
                              help='coco | kitti | coco_hp | pascal')
-    self.parser.add_argument('--exp_id', default='default')
+    self.parser.add_argument('--exp_id', default='default')  # 实验序号，用于确定试验结果保存路径
     self.parser.add_argument('--test', action='store_true')
     self.parser.add_argument('--debug', type=int, default=0,
                              help='level of visualization.'

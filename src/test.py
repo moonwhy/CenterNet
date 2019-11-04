@@ -47,18 +47,18 @@ class PrefetchDataset(torch.utils.data.Dataset):
 def prefetch_test(opt):
   os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
 
-  Dataset = dataset_factory[opt.dataset]
-  opt = opts().update_dataset_info_and_set_heads(opt, Dataset)
+  Dataset = dataset_factory[opt.dataset]  # COCO
+  opt = opts().update_dataset_info_and_set_heads(opt, Dataset)   # 根据数据集和arch生成检测器头所需的参数
   print(opt)
   Logger(opt)
-  Detector = detector_factory[opt.task]
+  Detector = detector_factory[opt.task]  # CtdetDetectoe
   
-  split = 'val' if not opt.trainval else 'test'
+  split = 'val' if not opt.trainval else 'test'  # opt.trainval缺省为false，那缺省为‘val’,用来确定训练和测试集的用val可以的。
   dataset = Dataset(opt, split)
-  detector = Detector(opt)
+  detector = Detector(opt)   # 生成检测器实例时完成了create model和load model
   
   data_loader = torch.utils.data.DataLoader(
-    PrefetchDataset(opt, dataset, detector.pre_process), 
+    PrefetchDataset(opt, dataset, detector.pre_process),   # pre_process在父类中
     batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
 
   results = {}
@@ -119,8 +119,12 @@ def test(opt):
   dataset.run_eval(results, opt.save_dir)
 
 if __name__ == '__main__':
-  opt = opts().parse()
+  '''
+  检测全过程，图貌似没保存，结果json保存了、有计算mAP ？
+  '''
+  minglingstr = 'ctdet --exp_id coco_hg --arch hourglass --keep_res --load_model /path/to/model'
+  opt = opts().parse(minglingstr.split())
   if opt.not_prefetch_test:
     test(opt)
   else:
-    prefetch_test(opt)
+    prefetch_test(opt)  # 预读测试集test，直接运行是这个

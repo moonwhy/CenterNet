@@ -232,7 +232,7 @@ class exkp(nn.Module):
 
         ## keypoint heatmaps
         for head in heads.keys():
-            if 'hm' in head:
+            if 'hm' in head:     # heatmap layers
                 module =  nn.ModuleList([
                     make_heat_layer(
                         cnv_dim, curr_dim, heads[head]) for _ in range(nstack)
@@ -240,7 +240,7 @@ class exkp(nn.Module):
                 self.__setattr__(head, module)
                 for heat in self.__getattr__(head):
                     heat[-1].bias.data.fill_(-2.19)
-            else:
+            else:               # 'wh' or 'reg' layers
                 module = nn.ModuleList([
                     make_regr_layer(
                         cnv_dim, curr_dim, heads[head]) for _ in range(nstack)
@@ -262,7 +262,7 @@ class exkp(nn.Module):
 
             out = {}
             for head in self.heads:
-                layer = self.__getattr__(head)[ind]
+                layer = self.__getattr__(head)[ind]  # ???
                 y = layer(cnv)
                 out[head] = y
             
@@ -280,9 +280,9 @@ def make_hg_layer(kernel, dim0, dim1, mod, layer=convolution, **kwargs):
     return nn.Sequential(*layers)
 
 
-class HourglassNet(exkp):
+class HourglassNet(exkp):  # expk 是 extream net key point 模型吧
     def __init__(self, heads, num_stacks=2):
-        n       = 5
+        n       = 5        # 生成4阶hourglass所需的参数
         dims    = [256, 256, 384, 384, 384, 512]
         modules = [2, 2, 2, 2, 2, 4]
 

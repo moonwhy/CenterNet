@@ -69,9 +69,9 @@ class BaseTrainer(object):
       output, loss, loss_stats = model_with_loss(batch)
       loss = loss.mean()
       if phase == 'train':
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+        self.optimizer.zero_grad()  # 梯度置零
+        loss.backward()  # loss反传
+        self.optimizer.step()  # 模型更新
       batch_time.update(time.time() - end)
       end = time.time()
 

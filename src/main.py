@@ -17,10 +17,10 @@ from trains.train_factory import train_factory
 
 
 def main(opt):
-  torch.manual_seed(opt.seed)
-  torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test
-  Dataset = get_dataset(opt.dataset, opt.task)
-  opt = opts().update_dataset_info_and_set_heads(opt, Dataset)
+  torch.manual_seed(opt.seed)  # 使得每次获取的随机数都是一样的
+  torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test  # 结构固定、形状固定时可以加快运行速度
+  Dataset = get_dataset(opt.dataset, opt.task)   # (coco ctdet) 得到实例Dataset(实例COCO, 实例CTDetDataset)
+  opt = opts().update_dataset_info_and_set_heads(opt, Dataset)  # 根据数据集和arch生成检测器头所需的参数
   print(opt)
 
   logger = Logger(opt)
@@ -29,15 +29,15 @@ def main(opt):
   opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
   
   print('Creating model...')
-  model = create_model(opt.arch, opt.heads, opt.head_conv)
-  optimizer = torch.optim.Adam(model.parameters(), opt.lr)
+  model = create_model(opt.arch, opt.heads, opt.head_conv)  # 当前测试模型结构（DLA、hourglass）、检测头、检测头卷即层设施
+  optimizer = torch.optim.Adam(model.parameters(), opt.lr)  # 设置优化器、迭代返回模型参数
   start_epoch = 0
   if opt.load_model != '':
     model, optimizer, start_epoch = load_model(
       model, opt.load_model, optimizer, opt.resume, opt.lr, opt.lr_step)
 
-  Trainer = train_factory[opt.task]
-  trainer = Trainer(opt, model, optimizer)
+  Trainer = train_factory[opt.task]  #
+  trainer = Trainer(opt, model, optimizer)  # 产生一个训练实例
   trainer.set_device(opt.gpus, opt.chunk_sizes, opt.device)
 
   print('Setting up data...')
@@ -66,8 +66,10 @@ def main(opt):
   print('Starting training...')
   best = 1e10
   for epoch in range(start_epoch + 1, opt.num_epochs + 1):
-    mark = epoch if opt.save_all else 'last'
-    log_dict_train, _ = trainer.train(epoch, train_loader)
+    mark = epoch if opt.save_all else 'last'   # 模型保存参数
+
+    log_dict_train, _ = trainer.train(epoch, train_loader)  # 训练
+
     logger.write('epoch: {} |'.format(epoch))
     for k, v in log_dict_train.items():
       logger.scalar_summary('train_{}'.format(k), v, epoch)
@@ -98,5 +100,6 @@ def main(opt):
   logger.close()
 
 if __name__ == '__main__':
-  opt = opts().parse()
+  minglingstr = 'ctdet --exp_id coco_hg --arch hourglass --batch_size 4 --lr 2.5e-4 --load_model ../models/ExtremeNet_500000.pth'
+  opt = opts().parse(minglingstr.split())
   main(opt)
