@@ -122,7 +122,9 @@ if __name__ == '__main__':
   '''
   检测全过程，图貌似没保存，结果json保存了、有计算mAP ？
   '''
-  minglingstr = 'ctdet --exp_id coco_hg --arch hourglass --keep_res --load_model /path/to/model'
+#  minglingstr = 'ctdet --exp_id coco_hg --arch hourglass --keep_res --load_model /path/to/model'
+  minglingstr = 'ctdet --exp_id fod_hg --debug 4 --dataset fod --arch hourglass ' \
+                '--load_model /home/ubuntu/user_space/CenterNet/exp/ctdet/fod_hg/model_last.pth'
   opt = opts().parse(minglingstr.split())
   if opt.not_prefetch_test:
     test(opt)

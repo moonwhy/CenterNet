@@ -13,14 +13,14 @@ import torch.utils.data as data
 
 class FOD(data.Dataset):
     num_classes = 3
-    default_resolution = [960,1600]
+    default_resolution = [512,1024]
     mean = np.array([0.40789654, 0.44719302, 0.47026115],
                     dtype=np.float32).reshape(1, 1, 3)
     std = np.array([0.28863828, 0.27408164, 0.27809835],
                    dtype=np.float32).reshape(1, 1, 3)
 
     def __init__(self, opt, split):
-        super(COCO, self).__init__()
+        super(FOD, self).__init__()
         self.data_dir = os.path.join(opt.data_dir, 'custom')
         self.img_dir = os.path.join(self.data_dir, '{}fod'.format(split))
         if split == 'test':
