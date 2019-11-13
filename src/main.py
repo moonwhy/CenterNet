@@ -15,6 +15,8 @@ from logger import Logger
 from datasets.dataset_factory import get_dataset
 from trains.train_factory import train_factory
 
+from tensorboardX import SummaryWriter
+
 
 def main(opt):
   torch.manual_seed(opt.seed)  # 使得每次获取的随机数都是一样的
@@ -65,6 +67,9 @@ def main(opt):
 
   print('Starting training...')
   best = 1e10
+
+  writer = SummaryWriter()
+
   for epoch in range(start_epoch + 1, opt.num_epochs + 1):
     mark = epoch if opt.save_all else 'last'   # 模型保存参数
 
@@ -97,7 +102,19 @@ def main(opt):
       print('Drop LR to', lr)
       for param_group in optimizer.param_groups:
           param_group['lr'] = lr
+
+    writer.add_scalar(os.path.join(opt.save_dir, 'scalar/train'), log_dict_train['loss'], epoch)
+    '''
+    x = range(0,epoch)
+    y = log_dict_train['loss']
+    plt.plot(x, y, '.-')
+    plt.xlabel('Train loss vs. epoches')
+    plt.ylabel('Train loss')
+    plt.show()
+    '''
   logger.close()
+  writer.close()
+
 
 if __name__ == '__main__':
   minglingstr = 'ctdet --exp_id fod_hg --dataset fod --arch hourglass --num_epochs 4 --batch_size 1 --lr 2.5e-4 --load_model ../models/ctdet_coco_hg.pth'
