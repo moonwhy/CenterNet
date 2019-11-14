@@ -153,6 +153,8 @@ class opts(object):
                              help='use mse loss or focal loss to train '
                                   'keypoint heatmaps.')
     # ctdet
+    self.parser.add_argument('--seg_weight', type=float, default=1,
+                             help='loss weight for seg maps.')
     self.parser.add_argument('--reg_loss', default='l1',
                              help='regression loss: sl1 | l1 | l2')
     self.parser.add_argument('--hm_weight', type=float, default=1,
@@ -186,6 +188,8 @@ class opts(object):
                              help='category specific bounding box size.')
     self.parser.add_argument('--not_reg_offset', action='store_true',
                              help='not regress local offset.')
+    self.parser.add_argument('--add_segmentation', action='store_true',
+                             help='add segmentation head.')
     # exdet
     self.parser.add_argument('--agnostic_ex', action='store_true',
                              help='use category agnostic extreme points.')
@@ -209,8 +213,10 @@ class opts(object):
                              help='not regression bounding box size.')
     
     # ground truth validation
+    self.parser.add_argument('--eval_oracle_seg', action='store_true',
+                             help='use ground truth seg map.')
     self.parser.add_argument('--eval_oracle_hm', action='store_true', 
-                             help='use ground center heatmap.')
+                             help='use ground truth center heatmap.')
     self.parser.add_argument('--eval_oracle_wh', action='store_true', 
                              help='use ground truth bounding box size.')
     self.parser.add_argument('--eval_oracle_offset', action='store_true', 
@@ -314,10 +320,12 @@ class opts(object):
         opt.heads.update({'reg': 2})
     elif opt.task == 'ctdet':
       # assert opt.dataset in ['pascal', 'coco']
-      opt.heads = {'hm': opt.num_classes,
+      opt.heads = {'hm': opt.num_classes,    #  the result of seg put as the last hm
                    'wh': 2 if not opt.cat_spec_wh else 2 * opt.num_classes}
       if opt.reg_offset:
         opt.heads.update({'reg': 2})
+      if opt.add_segmentation:
+        opt.heads.update({'seg': 1})
     elif opt.task == 'multi_pose':
       # assert opt.dataset in ['coco_hp']
       opt.flip_idx = dataset.flip_idx

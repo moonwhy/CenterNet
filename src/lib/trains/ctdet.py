@@ -17,7 +17,7 @@ from .base_trainer import BaseTrainer
 class CtdetLoss(torch.nn.Module):
   def __init__(self, opt):
     super(CtdetLoss, self).__init__()
-    self.crit = torch.nn.MSELoss() if opt.mse_loss else FocalLoss()
+    self.crit = torch.nn.MSELoss() if opt.mse_loss else FocalLoss()  # seg和hm用同一种损失应该可以的
     self.crit_reg = RegL1Loss() if opt.reg_loss == 'l1' else \
               RegLoss() if opt.reg_loss == 'sl1' else None
     self.crit_wh = torch.nn.L1Loss(reduction='sum') if opt.dense_wh else \
@@ -27,12 +27,16 @@ class CtdetLoss(torch.nn.Module):
 
   def forward(self, outputs, batch):
     opt = self.opt
-    hm_loss, wh_loss, off_loss = 0, 0, 0
+    hm_loss, seg_loss, wh_loss, off_loss = 0, 0, 0, 0
     for s in range(opt.num_stacks):
       output = outputs[s]
       if not opt.mse_loss:
         output['hm'] = _sigmoid(output['hm'])
+        if opt.add_segmentation:
+          output['seg'] = _sigmoid(output['seg'])
 
+      if opt.eval_oracle_seg:
+        output['seg'] = batch['seg']
       if opt.eval_oracle_hm:
         output['hm'] = batch['hm']
       if opt.eval_oracle_wh:
@@ -66,10 +70,13 @@ class CtdetLoss(torch.nn.Module):
       if opt.reg_offset and opt.off_weight > 0:
         off_loss += self.crit_reg(output['reg'], batch['reg_mask'],
                              batch['ind'], batch['reg']) / opt.num_stacks
+      if opt.add_segmentation and opt.seg_weight > 0:
+        seg_loss += self.crit(output['seg'], batch['seg']) / opt.num_stacks
+
         
     loss = opt.hm_weight * hm_loss + opt.wh_weight * wh_loss + \
-           opt.off_weight * off_loss
-    loss_stats = {'loss': loss, 'hm_loss': hm_loss,
+           opt.off_weight * off_loss + opt.seg_weight * seg_loss
+    loss_stats = {'loss': loss, 'seg_loss': seg_loss, 'hm_loss': hm_loss,
                   'wh_loss': wh_loss, 'off_loss': off_loss}
     return loss, loss_stats
 
@@ -78,7 +85,7 @@ class CtdetTrainer(BaseTrainer):
     super(CtdetTrainer, self).__init__(opt, model, optimizer=optimizer)
   
   def _get_losses(self, opt):
-    loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss']
+    loss_states = ['loss', 'seg_loss', 'hm_loss', 'wh_loss', 'off_loss']
     loss = CtdetLoss(opt)
     return loss_states, loss
 

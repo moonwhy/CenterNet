@@ -240,6 +240,14 @@ class exkp(nn.Module):
                 self.__setattr__(head, module)
                 for heat in self.__getattr__(head):
                     heat[-1].bias.data.fill_(-2.19)
+            elif 'seg' in head:
+                module = nn.ModuleList([
+                    make_heat_layer(
+                        cnv_dim, curr_dim, heads[head]) for _ in range(nstack)
+                ])
+                self.__setattr__(head, module)
+                for heat in self.__getattr__(head):
+                    heat[-1].bias.data.fill_(-2.19)
             else:               # 'wh' or 'reg' layers
                 module = nn.ModuleList([
                     make_regr_layer(

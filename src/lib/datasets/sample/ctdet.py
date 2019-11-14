@@ -10,7 +10,7 @@ import cv2
 import os
 from utils.image import flip, color_aug
 from utils.image import get_affine_transform, affine_transform
-from utils.image import gaussian_radius, draw_umich_gaussian, draw_msra_gaussian
+from utils.image import gaussian_radius, draw_umich_gaussian, draw_msra_gaussian, draw_seg
 from utils.image import draw_dense_reg
 import math
 
@@ -37,9 +37,9 @@ class CTDetDataset(data.Dataset):
     img = cv2.imread(img_path)
 
     height, width = img.shape[0], img.shape[1]
-    c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)
+    c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)  # c=[w/2., h/2.]
     if self.opt.keep_res:
-      input_h = (height | self.opt.pad) + 1
+      input_h = (height | self.opt.pad) + 1    # 向上调整成128的倍数
       input_w = (width | self.opt.pad) + 1
       s = np.array([input_w, input_h], dtype=np.float32)
     else:
@@ -48,11 +48,11 @@ class CTDetDataset(data.Dataset):
     
     flipped = False
     if self.split == 'train':
-      if not self.opt.not_rand_crop:
+      if not self.opt.not_rand_crop:    # 不激活，随机裁剪
         s = s * np.random.choice(np.arange(0.6, 1.4, 0.1))
-        w_border = self._get_border(128, img.shape[1])
+        w_border = self._get_border(128, img.shape[1])      # 边界宽度为128、64、32、16.。。。，防止剪没啦
         h_border = self._get_border(128, img.shape[0])
-        c[0] = np.random.randint(low=w_border, high=img.shape[1] - w_border)
+        c[0] = np.random.randint(low=w_border, high=img.shape[1] - w_border)    # 随机选中心？
         c[1] = np.random.randint(low=h_border, high=img.shape[0] - h_border)
       else:
         sf = self.opt.scale
@@ -83,6 +83,7 @@ class CTDetDataset(data.Dataset):
     num_classes = self.num_classes
     trans_output = get_affine_transform(c, s, 0, [output_w, output_h])
 
+    seg = np.ones((output_h, output_w), dtype=np.float32)
     hm = np.zeros((num_classes, output_h, output_w), dtype=np.float32)
     wh = np.zeros((self.max_objs, 2), dtype=np.float32)
     dense_wh = np.zeros((2, output_h, output_w), dtype=np.float32)
@@ -114,6 +115,7 @@ class CTDetDataset(data.Dataset):
         ct = np.array(
           [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
         ct_int = ct.astype(np.int32)
+        draw_seg(seg, ct_int, h, w)
         draw_gaussian(hm[cls_id], ct_int, radius)
         wh[k] = 1. * w, 1. * h
         ind[k] = ct_int[1] * output_w + ct_int[0]
@@ -127,6 +129,8 @@ class CTDetDataset(data.Dataset):
                        ct[0] + w / 2, ct[1] + h / 2, 1, cls_id])
     
     ret = {'input': inp, 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh}
+    if self.opt.add_segmentation:
+      ret.update({'reg': reg})
     if self.opt.dense_wh:
       hm_a = hm.max(axis=0, keepdims=True)
       dense_wh_mask = np.concatenate([hm_a, hm_a], axis=0)

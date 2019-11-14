@@ -172,6 +172,11 @@ def draw_dense_reg(regmap, heatmap, center, value, radius, is_offset=False):
   return regmap
 
 
+def draw_seg(seg, center, h, w):
+    cv2.ellipse(seg, center, (h/2, w/2), 0, 0, 360, 0, -1)  # 画椭圆
+    return seg
+
+
 def draw_msra_gaussian(heatmap, center, sigma):
   tmp_size = sigma * 3
   mu_x = int(center[0] + 0.5)
