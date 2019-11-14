@@ -16,6 +16,7 @@ from datasets.dataset_factory import get_dataset
 from trains.train_factory import train_factory
 
 from tensorboardX import SummaryWriter
+import matplotlib.pyplot as plt
 
 
 def main(opt):
@@ -68,7 +69,8 @@ def main(opt):
   print('Starting training...')
   best = 1e10
 
-  writer = SummaryWriter()
+  writer = SummaryWriter(log_dir=os.path.join(opt.save_dir, 'runs'))
+  y=[]
 
   for epoch in range(start_epoch + 1, opt.num_epochs + 1):
     mark = epoch if opt.save_all else 'last'   # 模型保存参数
@@ -103,10 +105,10 @@ def main(opt):
       for param_group in optimizer.param_groups:
           param_group['lr'] = lr
 
-    writer.add_scalar(os.path.join(opt.save_dir, 'scalar/train'), log_dict_train['loss'], epoch)
+    writer.add_scalar(os.path.join(opt.save_dir, 'runs/scalar/train'), log_dict_train['loss'], epoch)
     '''
     x = range(0,epoch)
-    y = log_dict_train['loss']
+    y.append(log_dict_train['loss'])
     plt.plot(x, y, '.-')
     plt.xlabel('Train loss vs. epoches')
     plt.ylabel('Train loss')
@@ -118,7 +120,13 @@ def main(opt):
 
 if __name__ == '__main__':
   minglingstr = 'ctdet --exp_id fod_hg --dataset fod --arch hourglass ' \
-                '--num_epochs 4 --num_iters 10 --batch_size 1 --lr 2.5e-4 ' \
+                '--num_epochs 8 --num_iters 5 --batch_size 1 --lr 2.5e-4 ' \
                 '--load_model ../models/ctdet_coco_hg.pth'
   opt = opts().parse(minglingstr.split())
   main(opt)
+
+  '''
+  查看tensorboard结果，在fod_hg文件夹中打开终端
+  运行tensorboard --logdir runs，
+  打开链接即可
+  '''
