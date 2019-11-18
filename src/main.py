@@ -105,7 +105,7 @@ def main(opt):
       for param_group in optimizer.param_groups:
           param_group['lr'] = lr
 
-    writer.add_scalar(os.path.join(opt.save_dir, 'runs/scalar/train'), log_dict_train['loss'], epoch)
+    writer.add_scalar(os.path.join(opt.save_dir, 'runs/scalar/train50'), log_dict_train['loss'], epoch)
     '''
     x = range(0,epoch)
     y.append(log_dict_train['loss'])
@@ -120,13 +120,14 @@ def main(opt):
 
 if __name__ == '__main__':
   minglingstr = 'ctdet --exp_id fod_hg --dataset fod --arch hourglass ' \
-                '--num_epochs 8 --num_iters 5 --batch_size 1 --lr 2.5e-4 ' \
-                '--load_model ../models/ctdet_coco_hg.pth'
+                '--num_epochs 50 --batch_size 3 --lr 2.5e-4 --lr_step 30,40 ' \
+                '--load_model ../models/ctdet_coco_hg.pth '
+#                '--num_iters 5'
   opt = opts().parse(minglingstr.split())
   main(opt)
 
   '''
-  查看tensorboard结果，在fod_hg文件夹中打开终端
+  查看tensorboardX结果，在fod_hg文件夹中打开终端
   运行tensorboard --logdir runs，
   打开链接即可
   '''

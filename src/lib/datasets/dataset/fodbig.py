@@ -56,7 +56,7 @@ class FOD(data.Dataset):
         self.split = split
         self.opt = opt
 
-        print('==> initializing coco 2017 {} data.'.format(split))
+        print('==> initializing fod {} data.'.format(split))
         self.coco = coco.COCO(self.annot_path)
         self.images = self.coco.getImgIds()
         self.num_samples = len(self.images)

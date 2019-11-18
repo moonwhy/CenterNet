@@ -79,7 +79,7 @@ def prefetch_test(opt):
   bar.finish()
   dataset.run_eval(results, opt.save_dir)
 
-def test(opt):
+def testtest(opt):
   os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
 
   Dataset = dataset_factory[opt.dataset]
@@ -123,10 +123,10 @@ if __name__ == '__main__':
   检测全过程，图貌似没保存，结果json保存了、有计算mAP ？
   '''
 #  minglingstr = 'ctdet --exp_id coco_hg --arch hourglass --keep_res --load_model /path/to/model'
-  minglingstr = 'ctdet --exp_id fod_hg --debug 4 --dataset fod --arch hourglass ' \
-                '--load_model /home/ubuntu/user_space/CenterNet/exp/ctdet/fod_hg/model_last.pth'
+  minglingstr = 'ctdet --exp_id fod_hg_last_test --debug 4 --dataset fod --arch hourglass ' \
+                '--vis_thresh 0.01 --load_model ../exp/ctdet/fod_hg/model_last.pth'
   opt = opts().parse(minglingstr.split())
   if opt.not_prefetch_test:
-    test(opt)
+    testtest(opt)
   else:
     prefetch_test(opt)  # 预读测试集test，直接运行是这个
