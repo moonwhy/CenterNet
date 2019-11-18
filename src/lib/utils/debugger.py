@@ -41,7 +41,7 @@ class Debugger(object):
         (255, 0, 0), (0, 0, 255), (255, 0, 0), (0, 0, 255),
         (255, 0, 0), (0, 0, 255), (255, 0, 0), (0, 0, 255),
         (255, 0, 0), (0, 0, 255)]
-    elif dataset == 'fod':
+    elif dataset == 'fod' or num_classes == 3:
       self.names = fod_class_name
     elif num_classes == 80 or dataset == 'coco':
       self.names = coco_class_name

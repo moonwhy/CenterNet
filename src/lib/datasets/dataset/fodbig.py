@@ -14,10 +14,16 @@ import torch.utils.data as data
 class FOD(data.Dataset):
     num_classes = 3
     default_resolution = [512,1024]
+    mean = np.array([0.52258845 0.51782426 0.50407589],
+                    dtype=np.float32).reshape(1, 1, 3)
+    std = np.array([0.18486446 0.19352223 0.20576859],
+                   dtype=np.float32).reshape(1, 1, 3)
+    '''
     mean = np.array([0.40789654, 0.44719302, 0.47026115],
                     dtype=np.float32).reshape(1, 1, 3)
     std = np.array([0.28863828, 0.27408164, 0.27809835],
                    dtype=np.float32).reshape(1, 1, 3)
+    '''
 
     def __init__(self, opt, split):
         super(FOD, self).__init__()
@@ -37,8 +43,8 @@ class FOD(data.Dataset):
                     self.data_dir, 'annotations',
                     '{}fod.json').format(split)
         self.max_objs = 128
-        self.class_name = ['fod', 'bolt', 'nut']
-        self._valid_ids = [0, 1, 2]
+        self.class_name = ['__background__', 'fod', 'bolt', 'nut']
+        self._valid_ids = [1, 2, 3]
         self.cat_ids = {v: i for i, v in enumerate(self._valid_ids)}
         self.voc_color = [(v // 32 * 64 + 64, (v // 8) % 4 * 64, v % 8 * 32) \
                           for v in range(1, self.num_classes + 1)]
