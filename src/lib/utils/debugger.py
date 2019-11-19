@@ -41,6 +41,8 @@ class Debugger(object):
         (255, 0, 0), (0, 0, 255), (255, 0, 0), (0, 0, 255),
         (255, 0, 0), (0, 0, 255), (255, 0, 0), (0, 0, 255),
         (255, 0, 0), (0, 0, 255)]
+    elif dataset == 'fod' or num_classes == 3:
+      self.names = fod_class_name
     elif num_classes == 80 or dataset == 'coco':
       self.names = coco_class_name
     elif num_classes == 20 or dataset == 'pascal':
@@ -439,6 +441,8 @@ gta_class_name = [
 pascal_class_name = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", 
   "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", 
   "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
+
+fod_class_name = ['fod', 'bolt', 'nut']
 
 coco_class_name = [
      'person', 'bicycle', 'car', 'motorcycle', 'airplane',

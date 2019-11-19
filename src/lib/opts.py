@@ -12,8 +12,8 @@ class opts(object):
     # basic experiment setting
     self.parser.add_argument('task', default='ctdet',
                              help='ctdet | ddd | multi_pose | exdet')
-    self.parser.add_argument('--dataset', default='coco',
-                             help='coco | kitti | coco_hp | pascal')
+    self.parser.add_argument('--dataset', default='fod',
+                             help='fod | coco | kitti | coco_hp | pascal')
     self.parser.add_argument('--exp_id', default='default')  # 实验序号，用于确定试验结果保存路径
     self.parser.add_argument('--test', action='store_true')
     self.parser.add_argument('--debug', type=int, default=0,
@@ -58,7 +58,7 @@ class opts(object):
                              choices=['white', 'black'])
     
     # model
-    self.parser.add_argument('--arch', default='dla_34', 
+    self.parser.add_argument('--arch', default='hourglass',
                              help='model architecture. Currently tested'
                                   'res_18 | res_101 | resdcn_18 | resdcn_101 |'
                                   'dlav0_34 | dla_34 | hourglass')
@@ -343,9 +343,9 @@ class opts(object):
 
   def init(self, args=''):
     default_dataset_info = {
-      'ctdet': {'default_resolution': [512, 512], 'num_classes': 80, 
-                'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
-                'dataset': 'coco'},
+      'ctdet': {'default_resolution': [768,1280], 'num_classes': 3,
+                'mean': [0.52258845, 0.51782426, 0.50407589], 'std': [0.18486446, 0.19352223, 0.20576859],
+                'dataset': 'fod'},
       'exdet': {'default_resolution': [512, 512], 'num_classes': 80, 
                 'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
                 'dataset': 'coco'},
