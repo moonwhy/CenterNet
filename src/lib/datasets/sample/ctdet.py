@@ -130,7 +130,7 @@ class CTDetDataset(data.Dataset):
     
     ret = {'input': inp, 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh}
     if self.opt.add_segmentation:
-      ret.update({'reg': reg})
+      ret.update({'seg': seg})
     if self.opt.dense_wh:
       hm_a = hm.max(axis=0, keepdims=True)
       dense_wh_mask = np.concatenate([hm_a, hm_a], axis=0)

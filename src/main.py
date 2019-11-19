@@ -100,7 +100,7 @@ def main(opt):
   logger.close()
 
 if __name__ == '__main__':
-  minglingstr = 'ctdet --exp_id coco_hg --add_segmentation --arch hourglass --batch_size 1 --lr 2.5e-4 ' \
-                '--load_model ../models/ExtremeNet_500000.pth'
+  minglingstr = 'ctdet --exp_id coco_seg_hg1 --add_segmentation --arch hourglass --batch_size 1 --lr 2.5e-4 ' \
+                '--load_model ../models/ctdet_coco_hg.pth --debug 2 --num_epoch 2'
   opt = opts().parse(minglingstr.split())
   main(opt)
