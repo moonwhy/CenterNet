@@ -7,6 +7,7 @@ import numpy as np
 from progress.bar import Bar
 import time
 import torch
+from models.utils import _sigmoid
 
 try:
   from external.nms import soft_nms
@@ -80,6 +81,11 @@ class CtdetDetector(BaseDetector):
       img = ((img * self.std + self.mean) * 255).astype(np.uint8)
       pred = debugger.gen_colormap(output['hm'][i].detach().cpu().numpy())
       debugger.add_blend_img(img, pred, 'pred_hm_{:.1f}'.format(scale))
+
+      if self.opt.add_segmentation:
+        pred_seg = debugger.gen_colormap(_sigmoid(output['seg'][i]).detach().cpu().numpy())
+        debugger.add_blend_img(img, pred_seg, 'pred_seg_{:.1f}'.format(scale))
+
       debugger.add_img(img, img_id='out_pred_{:.1f}'.format(scale))
       for k in range(len(dets[i])):
         if detection[i, k, 4] > self.opt.center_thresh:

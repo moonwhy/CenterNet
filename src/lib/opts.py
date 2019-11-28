@@ -18,6 +18,7 @@ class opts(object):
     self.parser.add_argument('--test', action='store_true')
     self.parser.add_argument('--debug', type=int, default=0,
                              help='level of visualization.'
+                                  'in train:'
                                   '1: only show the final detection results'
                                   '2: show the network output features'
                                   '3: use matplot to display' # useful when lunching training with ipython notebook

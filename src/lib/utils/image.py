@@ -173,9 +173,9 @@ def draw_dense_reg(regmap, heatmap, center, value, radius, is_offset=False):
 
 
 def draw_seg(seg, center, h, w):
-    h0, w0 = int(h/2), int(w/2)
+    h0, w0 = int(h/3), int(w/3)
     x, y = int(center[0]), int(center[1])
-    cv2.ellipse(seg, (x,y), (h0, w0), 0, 0, 360, 0, -1)  # 画椭圆
+    cv2.ellipse(seg, (x,y), (w0, h0), 0, 0, 360, 1, -1)  # 画椭圆
     return seg
 
 

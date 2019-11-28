@@ -13,6 +13,7 @@ from __future__ import print_function
 import numpy as np
 import torch
 import torch.nn as nn
+from models.utils import _sigmoid
 
 class convolution(nn.Module):
     def __init__(self, k, inp_dim, out_dim, stride=1, with_bn=True):
@@ -275,8 +276,11 @@ class exkp(nn.Module):
                 out[head] = y
             
             outs.append(out)
-            if ind < self.nstack - 1:
-                inter = self.inters_[ind](inter) + self.cnvs_[ind](cnv)
+            if ind < self.nstack - 1:   # 这里加stack2的输入
+                if 'seg' in out.keys():
+                    inter = self.inters_[ind](inter) + self.cnvs_[ind](cnv) + (_sigmoid(out['seg']) * cnv)
+                else:
+                    inter = self.inters_[ind](inter) + self.cnvs_[ind](cnv)
                 inter = self.relu(inter)
                 inter = self.inters[ind](inter)
         return outs
@@ -290,7 +294,7 @@ def make_hg_layer(kernel, dim0, dim1, mod, layer=convolution, **kwargs):
 
 class HourglassNet(exkp):  # expk 是 extream net key point 模型吧
     def __init__(self, heads, num_stacks=2):
-        n       = 5        # 生成4阶hourglass所需的参数
+        n       = 5        # 生成5阶hourglass所需的参数
         dims    = [256, 256, 384, 384, 384, 512]
         modules = [2, 2, 2, 2, 2, 4]
 

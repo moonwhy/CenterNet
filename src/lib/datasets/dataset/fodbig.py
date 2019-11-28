@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import pycocotools.coco as coco
 from pycocotools.cocoeval import COCOeval
+from pycocotools.fodeval import FODeval
 import numpy as np
 import json
 import os
@@ -109,7 +110,13 @@ class FOD(data.Dataset):
         # json.dump(detections, open(result_json, "w"))
         self.save_results(results, save_dir)
         coco_dets = self.coco.loadRes('{}/results.json'.format(save_dir))
+        '''
         coco_eval = COCOeval(self.coco, coco_dets, "bbox")
         coco_eval.evaluate()
         coco_eval.accumulate()
         coco_eval.summarize()
+        '''
+        fod_eval = FODeval(self.coco, coco_dets, "bbox", classlist=self.class_name[1:])
+        fod_eval.evaluate()
+        fod_eval.accumulate()
+        fod_eval.summarize()

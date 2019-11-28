@@ -5,7 +5,7 @@ from __future__ import print_function
 import torch
 import numpy as np
 
-from models.losses import FocalLoss
+from models.losses import FocalLoss, FocalLossseg
 from models.losses import RegL1Loss, RegLoss, NormRegL1Loss, RegWeightedL1Loss
 from models.decode import ctdet_decode
 from models.utils import _sigmoid
@@ -18,6 +18,8 @@ class CtdetLoss(torch.nn.Module):
   def __init__(self, opt):
     super(CtdetLoss, self).__init__()
     self.crit = torch.nn.MSELoss() if opt.mse_loss else FocalLoss()  # seg和hm用同一种损失应该可以的
+#    self.crit_seg = FocalLossseg()
+    self.crit_seg = torch.nn.MSELoss() if opt.mse_loss else FocalLoss()  # seg和hm用同一种损失应该可以的
     self.crit_reg = RegL1Loss() if opt.reg_loss == 'l1' else \
               RegLoss() if opt.reg_loss == 'sl1' else None
     self.crit_wh = torch.nn.L1Loss(reduction='sum') if opt.dense_wh else \
@@ -29,7 +31,7 @@ class CtdetLoss(torch.nn.Module):
     opt = self.opt
     hm_loss, seg_loss, wh_loss, off_loss = 0, 0, 0, 0
     for s in range(opt.num_stacks):
-      if s != opt.num_stacks:  # 前面的hourgalss不算fod类的损失
+      if s != opt.num_stacks-1:  # 前面的hourgalss不算fod类的损失
         output = outputs[s]
         if not opt.mse_loss:
           output['hm'] = _sigmoid(output['hm'])
@@ -72,7 +74,7 @@ class CtdetLoss(torch.nn.Module):
           off_loss += self.crit_reg(output['reg'], batch['reg_mask'],
                                batch['ind'], batch['reg']) / opt.num_stacks
         if opt.add_segmentation and opt.seg_weight > 0:
-          seg_loss += self.crit(output['seg'], batch['seg']) / opt.num_stacks
+          seg_loss += self.crit_seg(output['seg'], batch['seg']) / opt.num_stacks
       else:  # 后面的hourglass块算fod的loss
         output = outputs[s]
         if not opt.mse_loss:
@@ -116,7 +118,7 @@ class CtdetLoss(torch.nn.Module):
           off_loss += self.crit_reg(output['reg'], batch['reg_mask'],
                                     batch['ind'], batch['reg']) / opt.num_stacks
         if opt.add_segmentation and opt.seg_weight > 0:
-          seg_loss += self.crit(output['seg'], batch['seg']) / opt.num_stacks
+          seg_loss += self.crit_seg(output['seg'], batch['seg']) / opt.num_stacks
 
 
         
@@ -155,6 +157,9 @@ class CtdetTrainer(BaseTrainer):
       gt = debugger.gen_colormap(batch['hm'][i].detach().cpu().numpy())
       debugger.add_blend_img(img, pred, 'pred_hm')
       debugger.add_blend_img(img, gt, 'gt_hm')
+      if opt.add_segmentation:
+        gt_seg = debugger.gen_colormap(batch['seg'].detach().cpu().numpy())
+        debugger.add_blend_img(img, gt_seg, 'gt_seg')
       debugger.add_img(img, img_id='out_pred')
       for k in range(len(dets[i])):
         if dets[i, k, 4] > opt.center_thresh:
