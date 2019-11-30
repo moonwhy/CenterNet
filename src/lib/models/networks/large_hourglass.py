@@ -73,6 +73,28 @@ class residual(nn.Module):
         skip  = self.skip(x)
         return self.relu(bn2 + skip)
 
+class fire_module(nn.Module):
+    def __init__(self, k, inp_dim, out_dim, sr=2, stride=1, with_bn=True):
+        super(fire_module, self).__init__()
+        self.conv1    = nn.Conv2d(inp_dim, out_dim // sr, kernel_size=1, stride=1, bias=False)
+        self.bn1      = nn.BatchNorm2d(out_dim // sr)
+        self.conv_1x1 = nn.Conv2d(out_dim // sr, out_dim // 2, kernel_size=1, stride=stride, bias=False)
+        self.conv_3x3 = nn.Conv2d(out_dim // sr, out_dim // 2, kernel_size=3, padding=1,
+                                  stride=stride, groups=out_dim // sr, bias=False)
+        self.bn2      = nn.BatchNorm2d(out_dim)
+        self.skip     = (stride == 1 and inp_dim == out_dim)
+        self.relu     = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        conv1 = self.conv1(x)
+        bn1   = self.bn1(conv1)
+        conv2 = torch.cat((self.conv_1x1(bn1), self.conv_3x3(bn1)), 1)
+        bn2   = self.bn2(conv2)
+        if self.skip:
+            return self.relu(bn2 + x)
+        else:
+            return self.relu(bn2)
+
 def make_layer(k, inp_dim, out_dim, modules, layer=convolution, **kwargs):
     layers = [layer(k, inp_dim, out_dim, **kwargs)]
     for _ in range(1, modules):
@@ -100,7 +122,8 @@ def make_pool_layer(dim):
     return nn.Sequential()
 
 def make_unpool_layer(dim):
-    return nn.Upsample(scale_factor=2)
+    return nn.ConvTranspose2d(dim, dim, kernel_size=4, stride=2, padding=1)
+#    return nn.Upsample(scale_factor=2)
 
 def make_kp_layer(cnv_dim, curr_dim, out_dim):
     return nn.Sequential(
@@ -116,7 +139,7 @@ def make_cnv_layer(inp_dim, out_dim):
 
 class kp_module(nn.Module):
     def __init__(
-        self, n, dims, modules, layer=residual,
+        self, n, dims, modules, layer=fire_module,
         make_up_layer=make_layer, make_low_layer=make_layer,
         make_hg_layer=make_layer, make_hg_layer_revr=make_layer_revr,
         make_pool_layer=make_pool_layer, make_unpool_layer=make_unpool_layer,
@@ -183,7 +206,7 @@ class exkp(nn.Module):
         make_hg_layer=make_layer, make_hg_layer_revr=make_layer_revr,
         make_pool_layer=make_pool_layer, make_unpool_layer=make_unpool_layer,
         make_merge_layer=make_merge_layer, make_inter_layer=make_inter_layer, 
-        kp_layer=residual
+        kp_layer=fire_module
     ):
         super(exkp, self).__init__()
 
@@ -282,7 +305,7 @@ def make_hg_layer(kernel, dim0, dim1, mod, layer=convolution, **kwargs):
 
 class HourglassNet(exkp):  # expk 是 extream net key point 模型吧
     def __init__(self, heads, num_stacks=2):
-        n       = 5        # 生成4阶hourglass所需的参数
+        n       = 5        # 生成5阶hourglass所需的参数
         dims    = [256, 256, 384, 384, 384, 512]
         modules = [2, 2, 2, 2, 2, 4]
 
@@ -292,7 +315,7 @@ class HourglassNet(exkp):  # expk 是 extream net key point 模型吧
             make_br_layer=None,
             make_pool_layer=make_pool_layer,
             make_hg_layer=make_hg_layer,
-            kp_layer=residual, cnv_dim=256
+            kp_layer=fire_module, cnv_dim=256
         )
 
 def get_large_hourglass_net(num_layers, heads, head_conv):
