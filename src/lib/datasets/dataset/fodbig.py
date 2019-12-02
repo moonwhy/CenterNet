@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import pycocotools.coco as coco
-from pycocotools.cocoeval import COCOeval
+from pycocotools.fodeval import FODeval
 import numpy as np
 import json
 import os
@@ -13,7 +13,7 @@ import torch.utils.data as data
 
 class FOD(data.Dataset):
     num_classes = 3
-    default_resolution = [768, 1280]
+    default_resolution = [512,896]
     mean = np.array([0.52258845, 0.51782426, 0.50407589],
                     dtype=np.float32).reshape(1, 1, 3)
     std = np.array([0.18486446, 0.19352223, 0.20576859],
@@ -109,7 +109,7 @@ class FOD(data.Dataset):
         # json.dump(detections, open(result_json, "w"))
         self.save_results(results, save_dir)
         coco_dets = self.coco.loadRes('{}/results.json'.format(save_dir))
-        coco_eval = COCOeval(self.coco, coco_dets, "bbox")
+        coco_eval = FODeval(self.coco, coco_dets, "bbox", classlist=self.class_name[1:])
         coco_eval.evaluate()
         coco_eval.accumulate()
         coco_eval.summarize()

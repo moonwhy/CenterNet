@@ -13,6 +13,7 @@ from __future__ import print_function
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class convolution(nn.Module):
     def __init__(self, k, inp_dim, out_dim, stride=1, with_bn=True):
@@ -44,6 +45,41 @@ class fully_connected(nn.Module):
         bn     = self.bn(linear) if self.with_bn else linear
         relu   = self.relu(bn)
         return relu
+
+class depthwisev2(nn.Module):
+    '''expand + depthwise + pointwise'''
+    def __init__(self, k,  in_planes, out_planes, expansion=6, stride=1):
+        super(depthwisev2, self).__init__()
+        self.stride = stride
+
+        planes = expansion * in_planes
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=1,
+                               stride=1, padding=0, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.relu1 = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,
+                               stride=stride, padding=1, groups=planes,
+                               bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.relu2 = nn.ReLU(inplace=True)
+        self.conv3 = nn.Conv2d(planes, out_planes, kernel_size=1,
+                               stride=1, padding=0, bias=False)
+        self.bn3 = nn.BatchNorm2d(out_planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != out_planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, out_planes, kernel_size=1,
+                          stride=stride, padding=0, bias=False),
+                nn.BatchNorm2d(out_planes),
+            )
+
+    def forward(self, x):
+        out = self.relu1(self.bn1(self.conv1(x)))
+        out = self.relu2(self.bn2(self.conv2(out)))
+        out = self.bn3(self.conv3(out))
+        out = out + self.shortcut(x) if self.stride==1 else out
+        return out
 
 class residual(nn.Module):
     def __init__(self, k, inp_dim, out_dim, stride=1, with_bn=True):
@@ -100,7 +136,8 @@ def make_pool_layer(dim):
     return nn.Sequential()
 
 def make_unpool_layer(dim):
-    return nn.Upsample(scale_factor=2)
+#    return nn.Upsample(scale_factor=2)
+    return nn.ConvTranspose2d(dim, dim, kernel_size=4, stride=2, padding=1)
 
 def make_kp_layer(cnv_dim, curr_dim, out_dim):
     return nn.Sequential(
@@ -206,7 +243,8 @@ class exkp(nn.Module):
                 make_hg_layer_revr=make_hg_layer_revr,
                 make_pool_layer=make_pool_layer,
                 make_unpool_layer=make_unpool_layer,
-                make_merge_layer=make_merge_layer
+                make_merge_layer=make_merge_layer,
+                expansion=4
             ) for _ in range(nstack)
         ])
         self.cnvs = nn.ModuleList([
@@ -292,7 +330,7 @@ class HourglassNet(exkp):  # expk 是 extream net key point 模型吧
             make_br_layer=None,
             make_pool_layer=make_pool_layer,
             make_hg_layer=make_hg_layer,
-            kp_layer=residual, cnv_dim=256
+            kp_layer=depthwisev2, cnv_dim=256
         )
 
 def get_large_hourglass_net(num_layers, heads, head_conv):
