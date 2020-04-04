@@ -231,7 +231,7 @@ class exkp(nn.Module):
 
         self.pre = nn.Sequential(
             convolution(7, 3, 128, stride=2),
-            residual(3, 128, 256, stride=2)
+            residual(3, 128, 64, stride=2)
         ) if pre is None else pre
 
         self.kps  = nn.ModuleList([
@@ -244,7 +244,7 @@ class exkp(nn.Module):
                 make_pool_layer=make_pool_layer,
                 make_unpool_layer=make_unpool_layer,
                 make_merge_layer=make_merge_layer,
-                expansion=4
+                expansion=6
             ) for _ in range(nstack)
         ])
         self.cnvs = nn.ModuleList([
@@ -321,7 +321,8 @@ def make_hg_layer(kernel, dim0, dim1, mod, layer=convolution, **kwargs):
 class HourglassNet(exkp):  # expk 是 extream net key point 模型吧
     def __init__(self, heads, num_stacks=2):
         n       = 5        # 生成4阶hourglass所需的参数
-        dims    = [256, 256, 384, 384, 384, 512]
+#        dims    = [256, 256, 384, 384, 384, 512]
+        dims = [64, 64, 96, 96, 96, 128]
         modules = [2, 2, 2, 2, 2, 4]
 
         super(HourglassNet, self).__init__(

@@ -119,8 +119,8 @@ def main(opt):
 
 
 if __name__ == '__main__':
-  minglingstr = 'ctdet --exp_id fod_mov2_hg1 --dataset fod --arch hourglass ' \
-                '--num_epochs 100 --batch_size 1 --lr 2.5e-4 --lr_step 60,80 ' \
+  minglingstr = 'ctdet --exp_id fod_mov2_hg2 --dataset fod --arch hourglass --batch_size 1 --lr 2.5e-4 ' \
+#                '--num_epochs 100 --lr_step 60,80 ' \
 #                '--load_model ../models/ctdet_coco_hg.pth'
 #                '--num_iters 5'
   opt = opts().parse(minglingstr.split())
