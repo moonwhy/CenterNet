@@ -80,7 +80,7 @@ class fire_module(nn.Module):
         self.bn1      = nn.BatchNorm2d(out_dim // sr)
         self.conv_1x1 = nn.Conv2d(out_dim // sr, out_dim // 2, kernel_size=1, stride=stride, bias=False)
         self.conv_3x3 = nn.Conv2d(out_dim // sr, out_dim // 2, kernel_size=3, padding=1,
-                                  stride=stride, groups=out_dim // sr, bias=False)
+                                  stride=stride, bias=False)
         self.bn2      = nn.BatchNorm2d(out_dim)
         self.skip     = (stride == 1 and inp_dim == out_dim)
         self.relu     = nn.ReLU(inplace=True)
@@ -305,9 +305,14 @@ def make_hg_layer(kernel, dim0, dim1, mod, layer=convolution, **kwargs):
 
 class HourglassNet(exkp):  # expk 是 extream net key point 模型吧
     def __init__(self, heads, num_stacks=2):
+        '''
         n       = 5        # 生成5阶hourglass所需的参数
         dims    = [256, 256, 384, 384, 384, 512]
         modules = [2, 2, 2, 2, 2, 4]
+        '''
+        n = 4  # 生成4阶hourglass所需的参数
+        dims = [256, 256, 384, 384, 512]
+        modules = [2, 2, 2, 2, 4]
 
         super(HourglassNet, self).__init__(
             n, num_stacks, dims, modules, heads,
