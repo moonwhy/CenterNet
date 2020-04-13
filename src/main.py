@@ -105,7 +105,7 @@ def main(opt):
       for param_group in optimizer.param_groups:
           param_group['lr'] = lr
 
-    writer.add_scalar(os.path.join(opt.save_dir, 'runs/scalar/trainfromzero120-1'), log_dict_train['loss'], epoch)
+    writer.add_scalar(os.path.join(opt.save_dir, 'runs/scalar/centernetfromzero70-2'), log_dict_train['loss'], epoch)
     '''
     x = range(0,epoch)
     y.append(log_dict_train['loss'])
@@ -119,8 +119,8 @@ def main(opt):
 
 
 if __name__ == '__main__':
-  minglingstr = 'ctdet --exp_id fod_centernetfromzero_hg1 --dataset fod --arch hourglass ' \
-                '--num_epochs 120 --batch_size 1 --lr 2.5e-4 --lr_step 50,90 '
+  minglingstr = 'ctdet --exp_id fod_centernetfromzero_hg2 --dataset fod --arch hourglass ' \
+                '--num_epochs 70 --batch_size 1 --lr 1.25e-4 --lr_step 40,60 '
 #                '--load_model ../models/ctdet_coco_hg.pth'
 #                '--num_iters 5 --add_segmentation'
   opt = opts().parse(minglingstr.split())

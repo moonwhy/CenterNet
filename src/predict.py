@@ -123,8 +123,9 @@ if __name__ == '__main__':
   检测全过程，图貌似没保存，结果json保存了、有计算mAP ？
   '''
 #  minglingstr = 'ctdet --exp_id coco_hg --arch hourglass --keep_res --load_model /path/to/model'
-  minglingstr = 'ctdet --exp_id fod_seg_hg2_best_test --dataset fod --arch hourglass --add_segmentation ' \
-                '--load_model ../exp/ctdet/fod_seg_hg2/model_best.pth '
+  minglingstr = 'ctdet --exp_id fod_centernetfromzero_hg2_last_test --dataset fod --arch hourglass ' \
+                '--load_model ../exp/ctdet/fod_centernetfromzero_hg2/model_last.pth '
+  #                '--add_segmentation ' \
   opt = opts().parse(minglingstr.split())
   if opt.not_prefetch_test:
     testtest(opt)
