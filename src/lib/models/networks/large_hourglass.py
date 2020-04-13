@@ -220,7 +220,7 @@ class exkp(nn.Module):
         make_hg_layer=make_layer, make_hg_layer_revr=make_layer_revr,
         make_pool_layer=make_pool_layer, make_unpool_layer=make_unpool_layer,
         make_merge_layer=make_merge_layer, make_inter_layer=make_inter_layer, 
-        kp_layer=residual
+        kp_layer=residual, expansion=6
     ):
         super(exkp, self).__init__()
 
@@ -231,7 +231,7 @@ class exkp(nn.Module):
 
         self.pre = nn.Sequential(
             convolution(7, 3, 128, stride=2),
-            residual(3, 128, 64, stride=2)
+            residual(3, 128, cnv_dim, stride=2)
         ) if pre is None else pre
 
         self.kps  = nn.ModuleList([
@@ -244,7 +244,7 @@ class exkp(nn.Module):
                 make_pool_layer=make_pool_layer,
                 make_unpool_layer=make_unpool_layer,
                 make_merge_layer=make_merge_layer,
-                expansion=6
+                expansion=expansion
             ) for _ in range(nstack)
         ])
         self.cnvs = nn.ModuleList([
@@ -320,10 +320,20 @@ def make_hg_layer(kernel, dim0, dim1, mod, layer=convolution, **kwargs):
 
 class HourglassNet(exkp):  # expk 是 extream net key point 模型吧
     def __init__(self, heads, num_stacks=2):
+        '''
         n       = 5        # 生成4阶hourglass所需的参数
 #        dims    = [256, 256, 384, 384, 384, 512]
         dims = [64, 64, 96, 96, 96, 128]
         modules = [2, 2, 2, 2, 2, 4]
+        '''
+        n = 4  # 生成4阶hourglass所需的参数
+#        dims    = [256, 256, 384, 384, 512]
+        dims = [128, 128, 192, 192, 256]  # dw=2
+#        dims = [85, 85, 128, 128, 171]   #dw=3
+#        dims = [64, 64, 96, 96, 96, 128]  #dw=4
+#        dims = [51, 51, 77, 77, 103]   #dw=5
+#        dims = [43, 43, 64, 64, 86]   #dw=6
+        modules = [2, 2, 2, 2, 4]
 
         super(HourglassNet, self).__init__(
             n, num_stacks, dims, modules, heads,
@@ -331,7 +341,8 @@ class HourglassNet(exkp):  # expk 是 extream net key point 模型吧
             make_br_layer=None,
             make_pool_layer=make_pool_layer,
             make_hg_layer=make_hg_layer,
-            kp_layer=depthwisev2, cnv_dim=256
+            kp_layer=depthwisev2, cnv_dim=dims[0],
+            expansion=2
         )
 
 def get_large_hourglass_net(num_layers, heads, head_conv):
